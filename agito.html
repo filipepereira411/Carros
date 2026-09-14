@@ -1,3 +1,273 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Controlo Interativo</title>
+    <style>
+        :root {
+            --bg-color: #121214;
+            --card-bg: #1e1e24;
+            --primary: #4f46e5;
+            --success: #10b981;
+            --danger: #ef4444;
+            --text: #ffffff;
+            --text-secondary: #a1a1aa;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        h1 {
+            margin-bottom: 30px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Estilo dos Botões Principais (Menus) */
+        .main-btn {
+            background-color: var(--card-bg);
+            border: 2px solid #333;
+            color: var(--text);
+            padding: 20px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 12px;
+            cursor: pointer;
+            text-align: left;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+
+        .main-btn:hover {
+            border-color: var(--primary);
+            background-color: #25252d;
+        }
+
+        .main-btn::after {
+            content: '▼';
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            transition: transform 0.3s ease;
+        }
+
+        .main-btn.active::after {
+            transform: rotate(180deg);
+        }
+
+        /* Submenus (Escondidos por padrão) */
+        .submenu {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out, padding 0.3s ease;
+            background-color: #1a1a1f;
+            border-radius: 0 0 12px 12px;
+            margin-top: -10px;
+            padding: 0 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            box-sizing: border-box;
+        }
+
+        .submenu.show {
+            max-height: 600px;
+            padding: 20px;
+            border: 2px solid #333;
+            border-top: none;
+        }
+
+        /* Elementos Internos */
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            color: white;
+        }
+
+        .btn-on { background-color: var(--success); }
+        .btn-on:hover { background-color: #059669; }
+        .btn-off { background-color: var(--danger); }
+        .btn-off:hover { background-color: #dc2626; }
+       
+        .btn-toggle {
+            background-color: #4b5563;
+            font-size: 1.1rem;
+            padding: 15px;
+        }
+        .btn-toggle.car-on {
+            background-color: var(--success);
+        }
+
+        /* Área do Vídeo da Câmara */
+        .video-container {
+            width: 100%;
+            height: 250px;
+            background-color: #000;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: none;
+        }
+
+        .video-placeholder {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        /* Controlos do Carro */
+        .dpad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            max-width: 200px;
+            margin: 0 auto;
+        }
+
+        .dpad-btn {
+            background-color: #3f3f46;
+            color: white;
+            border: none;
+            padding: 15px;
+            font-size: 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .dpad-btn:active { background-color: var(--primary); }
+
+        /* Secção Extra (Matrícula) */
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        input[type="text"] {
+            flex: 2;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #444;
+            background-color: #27272a;
+            color: white;
+            text-transform: uppercase;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .btn-go {
+            flex: 1;
+            background-color: var(--primary);
+        }
+        .btn-go:hover { background-color: #4338ca; }
+
+        /* Logs de Estado */
+        .status-log {
+            background-color: #09090b;
+            padding: 12px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 0.85rem;
+            color: #34d399;
+            min-height: 20px;
+            text-align: center;
+            margin-top: 20px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Painel de Controlo</h1>
+
+    <div class="container">
+
+        <!-- BOTÃO CÂMARA -->
+        <button class="main-btn" onclick="toggleMenu('menu-camera', this)">📷 Menu Câmara</button>
+        <div id="menu-camera" class="submenu">
+            <div class="video-container">
+                <div id="placeholder" class="video-placeholder">Câmara Desligada</div>
+                <video id="webcam" autoplay playsinline></video>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-on" onclick="ligarCamera()">Ligar</button>
+                <button class="btn btn-off" onclick="desligarCamera()">Desligar</button>
+            </div>
+        </div>
+
+        <!-- BOTÃO CARRO -->
+        <button class="main-btn" onclick="toggleMenu('menu-carro', this)">🚗 Menu Carro</button>
+        <div id="menu-carro" class="submenu">
+           
+            <!-- Ligar / Desligar Único -->
+            <button id="carToggleBtn" class="btn btn-toggle" onclick="toggleCarro()">Carro: DESLIGADO</button>
+
+            <!-- Controlo do Carro -->
+            <div style="text-align: center; margin-top: 10px;">
+                <label style="color: var(--text-secondary); font-size: 0.9rem; display:block; margin-bottom:8px;">Direção do Veículo</label>
+                <div class="dpad">
+                    <div></div>
+                    <button class="dpad-btn" onmousedown="moverCarro('Frente')" onmouseup="pararCarro()" ontouchstart="moverCarro('Frente')" ontouchend="pararCarro()">▲</button>
+                    <div></div>
+                    <button class="dpad-btn" onmousedown="moverCarro('Esquerda')" onmouseup="pararCarro()" ontouchstart="moverCarro('Esquerda')" ontouchend="pararCarro()">◀</button>
+                    <div></div>
+                    <button class="dpad-btn" onmousedown="moverCarro('Direita')" onmouseup="pararCarro()" ontouchstart="moverCarro('Direita')" ontouchend="pararCarro()">▶</button>
+                    <div></div>
+                    <button class="dpad-btn" onmousedown="moverCarro('Trás')" onmouseup="pararCarro()" ontouchstart="moverCarro('Trás')" ontouchend="pararCarro()">▼</button>
+                    <div></div>
+                </div>
+            </div>
+
+            <!-- Extra (Dentro do menu carro) -->
+            <div style="border-top: 1px solid #333; padding-top: 15px; margin-top: 10px;">
+                <label style="color: var(--text-secondary); font-size: 0.9rem; display:block; margin-bottom:8px;">Extra: Destino por Matrícula</label>
+                <div class="input-group">
+                    <input type="text" id="plateInput" placeholder="AA-00-00">
+                    <button class="btn btn-go" onclick="enviarMatricula()">Ir</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Logs de Estado -->
+        <div id="log-status" class="status-log">Sistema Operacional.</div>
+
     </div> <!-- Fim do .container -->
 
     <script>
@@ -7,16 +277,6 @@
 
         // --- Gestão dos Menus (Accordion) ---
         function toggleMenu(menuId, btn) {
-            // Fecha todos os submenus e remove a classe ativa dos botões (opcional, para comportamento puramente exclusivo)
-            /* 
-            document.querySelectorAll('.submenu').forEach(sub => {
-                if(sub.id !== menuId) sub.classList.remove('show');
-            });
-            document.querySelectorAll('.main-btn').forEach(b => {
-                if(b !== btn) b.classList.remove('active');
-            });
-            */
-
             const menu = document.getElementById(menuId);
             menu.classList.toggle('show');
             btn.classList.toggle('active');
@@ -29,11 +289,9 @@
             const log = document.getElementById('log-status');
 
             try {
-                // Pede permissão e acede ao stream da câmara
                 streamWebcam = await navigator.mediaDevices.getUserMedia({ video: true });
                 video.srcObject = streamWebcam;
                 
-                // Atualiza a interface gráfica
                 placeholder.style.display = 'none';
                 video.style.display = 'block';
                 log.innerText = "Câmara iniciada com sucesso.";
@@ -46,68 +304,3 @@
         function desligarCamera() {
             const video = document.getElementById('webcam');
             const placeholder = document.getElementById('placeholder');
-            const log = document.getElementById('log-status');
-
-            if (streamWebcam) {
-                // Para todas as faixas de vídeo ativas
-                streamWebcam.getTracks().forEach(track => track.stop());
-                video.srcObject = null;
-            }
-
-            // Atualiza a interface gráfica
-            placeholder.style.display = 'block';
-            video.style.display = 'none';
-            log.innerText = "Câmara desligada.";
-        }
-
-        // --- Controlo do Carro ---
-        function toggleCarro() {
-            const btn = document.getElementById('carToggleBtn');
-            const log = document.getElementById('log-status');
-            
-            carroLigado = !carroLigado;
-
-            if (carroLigado) {
-                btn.innerText = "Carro: LIGADO";
-                btn.classList.add('car-on');
-                log.innerText = "Motor do carro ligado. Pronto para navegar.";
-            } else {
-                btn.innerText = "Carro: DESLIGADO";
-                btn.classList.remove('car-on');
-                log.innerText = "Motor do carro desligado.";
-            }
-        }
-
-        function moverCarro(direcao) {
-            const log = document.getElementById('log-status');
-            if (!carroLigado) {
-                log.innerText = "Aviso: Ligue o carro primeiro!";
-                return;
-            }
-            log.innerText = `A mover veículo para: ${direcao}`;
-        }
-
-        function pararCarro() {
-            const log = document.getElementById('log-status');
-            if (carroLigado) {
-                log.innerText = "Veículo imobilizado.";
-            }
-        }
-
-        // --- Destino por Matrícula ---
-        function enviarMatricula() {
-            const input = document.getElementById('plateInput');
-            const log = document.getElementById('log-status');
-            const valor = input.value.trim().toUpperCase();
-
-            if (!valor) {
-                log.innerText = "Por favor, insira uma matrícula válida.";
-                return;
-            }
-
-            log.innerText = `Rota calculada para a matrícula: ${valor}`;
-            input.value = ''; // Limpa o campo após o envio
-        }
-    </script>
-</body>
-</html>
