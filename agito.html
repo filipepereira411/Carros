@@ -1,0 +1,113 @@
+    </div> <!-- Fim do .container -->
+
+    <script>
+        // --- Estado Global ---
+        let streamWebcam = null;
+        let carroLigado = false;
+
+        // --- Gestão dos Menus (Accordion) ---
+        function toggleMenu(menuId, btn) {
+            // Fecha todos os submenus e remove a classe ativa dos botões (opcional, para comportamento puramente exclusivo)
+            /* 
+            document.querySelectorAll('.submenu').forEach(sub => {
+                if(sub.id !== menuId) sub.classList.remove('show');
+            });
+            document.querySelectorAll('.main-btn').forEach(b => {
+                if(b !== btn) b.classList.remove('active');
+            });
+            */
+
+            const menu = document.getElementById(menuId);
+            menu.classList.toggle('show');
+            btn.classList.toggle('active');
+        }
+
+        // --- Controlo da Câmara ---
+        async function ligarCamera() {
+            const video = document.getElementById('webcam');
+            const placeholder = document.getElementById('placeholder');
+            const log = document.getElementById('log-status');
+
+            try {
+                // Pede permissão e acede ao stream da câmara
+                streamWebcam = await navigator.mediaDevices.getUserMedia({ video: true });
+                video.srcObject = streamWebcam;
+                
+                // Atualiza a interface gráfica
+                placeholder.style.display = 'none';
+                video.style.display = 'block';
+                log.innerText = "Câmara iniciada com sucesso.";
+            } catch (err) {
+                console.error("Erro ao aceder à câmara: ", err);
+                log.innerText = "Erro: Sem permissão ou câmara indisponível.";
+            }
+        }
+
+        function desligarCamera() {
+            const video = document.getElementById('webcam');
+            const placeholder = document.getElementById('placeholder');
+            const log = document.getElementById('log-status');
+
+            if (streamWebcam) {
+                // Para todas as faixas de vídeo ativas
+                streamWebcam.getTracks().forEach(track => track.stop());
+                video.srcObject = null;
+            }
+
+            // Atualiza a interface gráfica
+            placeholder.style.display = 'block';
+            video.style.display = 'none';
+            log.innerText = "Câmara desligada.";
+        }
+
+        // --- Controlo do Carro ---
+        function toggleCarro() {
+            const btn = document.getElementById('carToggleBtn');
+            const log = document.getElementById('log-status');
+            
+            carroLigado = !carroLigado;
+
+            if (carroLigado) {
+                btn.innerText = "Carro: LIGADO";
+                btn.classList.add('car-on');
+                log.innerText = "Motor do carro ligado. Pronto para navegar.";
+            } else {
+                btn.innerText = "Carro: DESLIGADO";
+                btn.classList.remove('car-on');
+                log.innerText = "Motor do carro desligado.";
+            }
+        }
+
+        function moverCarro(direcao) {
+            const log = document.getElementById('log-status');
+            if (!carroLigado) {
+                log.innerText = "Aviso: Ligue o carro primeiro!";
+                return;
+            }
+            log.innerText = `A mover veículo para: ${direcao}`;
+        }
+
+        function pararCarro() {
+            const log = document.getElementById('log-status');
+            if (carroLigado) {
+                log.innerText = "Veículo imobilizado.";
+            }
+        }
+
+        // --- Destino por Matrícula ---
+        function enviarMatricula() {
+            const input = document.getElementById('plateInput');
+            const log = document.getElementById('log-status');
+            const valor = input.value.trim().toUpperCase();
+
+            if (!valor) {
+                log.innerText = "Por favor, insira uma matrícula válida.";
+                return;
+            }
+
+            log.innerText = `Rota calculada para a matrícula: ${valor}`;
+            input.value = ''; // Limpa o campo após o envio
+        }
+    </script>
+</body>
+</html>
